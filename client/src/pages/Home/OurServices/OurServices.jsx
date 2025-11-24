@@ -55,9 +55,16 @@ const OurServices = () => {
   ];
 
   return (
-    <div className="bg-gray-50 py-12 px-4 md:px-8 lg:px-16">
+    <div className="bg-[#03373D] py-12 px-4 md:px-8 lg:px-16">
       {" "}
-      <h2 className="text-3xl font-bold text-center mb-8">Our Services</h2>{" "}
+      <h2 className="text-3xl font-bold text-center mb-8 text-white">
+        Our Services
+      </h2>{" "}
+      <p className="text-white text-center pb-4 w-f md:w-1/2 mx-auto">
+        Enjoy fast, reliable parcel delivery with real-time tracking and zero
+        hassle. From personal packages to business shipments — we deliver on
+        time, every time.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {servicesData.map((service) => (
           <div
