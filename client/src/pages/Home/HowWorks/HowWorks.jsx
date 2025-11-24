@@ -35,7 +35,7 @@ const HowWorks = () => {
 
   return (
     <div>
-      <h2 className=" md:text-2xl lg:text-3xl font-bold my-3">How it's Works</h2>
+      <h2 className=" md:text-2xl lg:text-3xl font-bold my-3 text-center py-4">How it's Works</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 ">
         {deliveryData.map((item) => (
           <div key={item.id} className="space-y-2 bg-white p-4 rounded-lg hover:bg-primary ">
