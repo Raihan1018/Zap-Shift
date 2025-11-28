@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import useAuth from "../../../hooks/useAuth";
+import GoogleLogin from "../SocialLogin/GoogleLogin";
 
 const Login = () => {
   const {
@@ -86,6 +87,7 @@ const Login = () => {
               Register here
             </Link>
           </p>
+          <GoogleLogin/>
         </form>
       </div>
     </div>
