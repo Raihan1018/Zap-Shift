@@ -1,3 +1,4 @@
+import { span } from "motion/react-client";
 import React from "react";
 import { useForm } from "react-hook-form";
 
@@ -46,7 +47,12 @@ const Register = () => {
             </label>
             <input
               type="password"
-              {...register("password", { required: true, minLength: 6 })}
+              {...register("password", {
+                required: true,
+                minLength: 6,
+                pattern:
+                  /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+              })}
               placeholder="Enter your password"
               className="input input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
             />
@@ -59,6 +65,12 @@ const Register = () => {
                 Password must be at least 6 characters
               </span>
             )}
+            {errors.password?.type === "pattern" && (
+              <span className="text-red-500 text-sm">
+                Password must contain at least one uppercase letter, one
+                lowercase letter, one number, and one special character
+              </span>
+            )}
 
             <label className="label justify-end">
               <a href="#" className="label-text-alt link link-hover text-sm">
@@ -69,7 +81,7 @@ const Register = () => {
 
           {/* Button */}
           <div className="form-control mt-4">
-            <button className="btn bg-primary px-6 py-2 rounded-xl text-white">
+            <button className="btn bg-primary px-6 py-2 rounded-xl">
               Register
             </button>
           </div>
