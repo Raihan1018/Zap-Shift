@@ -1,6 +1,6 @@
-import { span } from "motion/react-client";
-import React from "react";
 import { useForm } from "react-hook-form";
+import useAuth from "../../../hooks/useAuth";
+import { Link } from "react-router";
 
 const Register = () => {
   const {
@@ -9,8 +9,17 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
+  const { registerUser } = useAuth();
+
   const handleRegister = (data) => {
     console.log(data);
+    registerUser(data.email, data.password)
+      .then((result) => {
+        console.log(result.user);
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
   };
 
   return (
@@ -89,9 +98,9 @@ const Register = () => {
           {/* Bottom text */}
           <p className="text-center text-sm text-gray-600 mt-2">
             Already have an account?{" "}
-            <a href="#" className="text-primary font-medium link">
+            <Link to="/login" className="text-primary font-medium link">
               Login
-            </a>
+            </Link>
           </p>
         </form>
       </div>
