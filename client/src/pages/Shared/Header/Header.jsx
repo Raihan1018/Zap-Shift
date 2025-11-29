@@ -67,7 +67,9 @@ const Header = () => {
             Login
           </Link>
         )}
-        <Link to={'/'} className="btn bg-primary text-black">Be a Rider</Link>
+        <Link to={"/rider"} className="btn bg-primary text-black">
+          Be a Rider
+        </Link>
       </div>
     </div>
   );

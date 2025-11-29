@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import useAuth from "../../../hooks/useAuth";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import GoogleLogin from "../SocialLogin/GoogleLogin";
 import axios from "axios";
 
@@ -10,6 +10,9 @@ const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { registerUser, updateUserProfile } = useAuth();
 
@@ -38,6 +41,7 @@ const Register = () => {
           updateUserProfile(userProfile)
             .then((result) => {
               console.log("user profile update done");
+              navigate(location?.state || "/");
             })
             .catch((error) => {
               console.log(error);
@@ -159,6 +163,7 @@ const Register = () => {
           <p className="text-center text-sm text-gray-600 mt-2">
             Already have an account?{" "}
             <Link
+              state={location?.state}
               to="/login"
               className="text-blue-500 underline font-medium link"
             >
