@@ -57,7 +57,7 @@ const Header = () => {
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">{links}</ul>
       </div>
-      <div className="navbar-end">
+      <div className="navbar-end space-x-3">
         {user ? (
           <Link onClick={handleLogOut} className="btn">
             Log out
@@ -67,6 +67,7 @@ const Header = () => {
             Login
           </Link>
         )}
+        <Link to={'/'} className="btn bg-primary text-black">Be a Rider</Link>
       </div>
     </div>
   );

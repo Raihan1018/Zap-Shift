@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import useAuth from "../../../hooks/useAuth";
 import { Link } from "react-router";
 import GoogleLogin from "../SocialLogin/GoogleLogin";
+import axios from "axios";
 
 const Register = () => {
   const {
@@ -10,13 +11,38 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const { registerUser } = useAuth();
+  const { registerUser, updateUserProfile } = useAuth();
 
   const handleRegister = (data) => {
-    console.log(data);
+    console.log(data.photo[0]);
+    const profileImg = data.photo[0];
+
     registerUser(data.email, data.password)
       .then((result) => {
         console.log(result.user);
+        // store the img and get the URL
+        const formData = new FormData();
+        formData.append("image", profileImg);
+
+        const image_API_URL = `https://api.imgbb.com/1/upload?key=${
+          import.meta.env.VITE_image_host_key
+        }`;
+
+        axios.post(image_API_URL, formData).then((res) => {
+          console.log("after img upload", res.data.display_url);
+          // update user profile
+          const userProfile = {
+            displayName: data.name,
+            photoURL: res.data.data.url,
+          };
+          updateUserProfile(userProfile)
+            .then((result) => {
+              console.log("user profile update done");
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        });
       })
       .catch((error) => {
         console.log(error.message);
@@ -34,6 +60,39 @@ const Register = () => {
             Create Account
           </h2>
 
+          {/* photo */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label">upload Your Phone</span>
+            </label>
+            <input
+              className="file-input"
+              placeholder="Your Photo"
+              type="file"
+              {...register("photo", { required: true })}
+            />
+
+            {errors.photo?.type === "required" && (
+              <span className="text-red-500 text-sm">Photo is required</span>
+            )}
+          </div>
+
+          {/* Name */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Name</span>
+            </label>
+            <input
+              type="text"
+              {...register("name", { required: true })}
+              placeholder="Enter your Name"
+              className="input border p-3 input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
+            />
+            {errors.name?.type === "required" && (
+              <span className="text-red-500 text-sm">Name is required</span>
+            )}
+          </div>
+
           {/* Email */}
           <div className="form-control">
             <label className="label">
@@ -43,7 +102,7 @@ const Register = () => {
               type="email"
               {...register("email", { required: true })}
               placeholder="Enter your email"
-              className="input input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
+              className="input border p-3 input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
             />
             {errors.email?.type === "required" && (
               <span className="text-red-500 text-sm">Email is required</span>
@@ -64,7 +123,7 @@ const Register = () => {
                   /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
               })}
               placeholder="Enter your password"
-              className="input input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
+              className="border p-3 input input-bordered rounded-xl focus:outline-none focus:ring focus:ring-primary focus:border-primary transition"
             />
             {errors.password?.type === "required" && (
               <span className="text-red-500 text-sm">Password is required</span>
@@ -99,11 +158,14 @@ const Register = () => {
           {/* Bottom text */}
           <p className="text-center text-sm text-gray-600 mt-2">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-500 underline font-medium link">
+            <Link
+              to="/login"
+              className="text-blue-500 underline font-medium link"
+            >
               Login
             </Link>
           </p>
-        <GoogleLogin/>
+          <GoogleLogin />
         </form>
       </div>
     </div>
