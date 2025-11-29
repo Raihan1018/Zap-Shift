@@ -72,9 +72,7 @@ const Login = () => {
 
           {/* Button */}
           <div className="form-control mt-4">
-            <button className="btn bg-primary px-6 py-2 rounded-xl">
-              Login
-            </button>
+            <button className="btn px-6 py-2 rounded-xl">Login</button>
           </div>
 
           {/* Bottom text */}
@@ -87,7 +85,7 @@ const Login = () => {
               Register here
             </Link>
           </p>
-          <GoogleLogin/>
+          <GoogleLogin />
         </form>
       </div>
     </div>
