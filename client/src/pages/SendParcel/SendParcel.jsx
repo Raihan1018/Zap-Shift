@@ -2,6 +2,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { useLoaderData } from "react-router";
 import Swal from "sweetalert2";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import useAuth from "../../hooks/useAuth";
 
 const SendParcel = () => {
   const {
@@ -10,6 +12,9 @@ const SendParcel = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const { user } = useAuth();
+
+  const axiosSecure = useAxiosSecure();
 
   const serviceCenter = useLoaderData();
 
@@ -59,6 +64,9 @@ const SendParcel = () => {
       confirmButtonText: "Yes, I agree!",
     }).then((result) => {
       if (result.isConfirmed) {
+        axiosSecure.post("/parcels", data).then((res) => {
+          console.log("after saving the parcel info in DB", res.data);
+        });
 
         // Swal.fire({
         //   title: "No!",
@@ -137,6 +145,7 @@ const SendParcel = () => {
               <label className="label font-medium">Sender Name</label>
               <input
                 type="text"
+                defaultValue={user?.displayName}
                 {...register("senderName")}
                 className="input input-bordered w-full"
                 placeholder="Sender Name"
@@ -145,6 +154,7 @@ const SendParcel = () => {
               <label className="label mt-4 font-medium">Sender Email</label>
               <input
                 type="email"
+                defaultValue={user?.email}
                 {...register("senderEmail")}
                 className="input input-bordered w-full"
                 placeholder="Sender Email"
