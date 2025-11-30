@@ -17,12 +17,12 @@ const Register = () => {
   const { registerUser, updateUserProfile } = useAuth();
 
   const handleRegister = (data) => {
-    console.log(data.photo[0]);
+    // console.log(data.photo[0]);
     const profileImg = data.photo[0];
 
     registerUser(data.email, data.password)
       .then((result) => {
-        console.log(result.user);
+        // console.log(result.user);
         // store the img and get the URL
         const formData = new FormData();
         formData.append("image", profileImg);
