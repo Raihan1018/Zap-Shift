@@ -41,9 +41,18 @@ async function run() {
     });
 
     app.post("/parcels", async (req, res) => {
-      const parcel = req.body;
-      const result = await parcelsCollection.insertOne(parcel);
-      res.send(result);
+      try {
+        const parcel = req.body;
+
+        // Add current date
+        parcel.date = new Date(); // stores the current timestamp
+
+        const result = await parcelsCollection.insertOne(parcel);
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to add parcel" });
+      }
     });
 
     // Send a ping to confirm a successful connection
