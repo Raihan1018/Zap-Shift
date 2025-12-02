@@ -3,6 +3,7 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const port = process.env.PORT || 3000;
+const stripe = require("stripe")(process.env.STRIPT_SECRET);
 
 // middleware
 app.use(express.json());
@@ -67,6 +68,100 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await parcelsCollection.deleteOne(query);
       res.send(result);
+    });
+
+    // payment related API old
+    // app.post("/create-checkout-session", async (req, res) => {
+    //   const paymentInfo = req.body;
+    //   const amount = parseInt(paymentInfo.cost) * 100;
+    //   const session = await stripe.checkout.sessions.create({
+    //     line_items: [
+    //       {
+    //         price_data: {
+    //           currency: "USD",
+    //           unit_amount: amount,
+    //           product_data: {
+    //             name: paymentInfo.parcelName,
+    //           },
+    //         },
+
+    //         quantity: 1,
+    //       },
+    //     ],
+    //     customer_email: paymentInfo.senderEmail,
+    //     mode: "payment",
+    //     metadata: {
+    //       parcelId: paymentInfo.parcelId,
+    //     },
+    //     success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
+    //     cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancel`,
+    //   });
+    //   console.log(session);
+    //   res.send({
+    //     url: session.url,
+    //   });
+    // });
+
+    // payment API new
+    app.post("/payment-checkout-session", async (req, res) => {
+      try {
+        const paymentInfo = req.body; // FIXED
+
+        const amount = parseFloat(paymentInfo.cost) * 100;
+
+        const session = await stripe.checkout.sessions.create({
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: amount,
+                product_data: {
+                  name: `Please pay ${paymentInfo.parcelName}`,
+                },
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+
+          metadata: {
+            parcelId: paymentInfo.parcelId,
+          },
+
+          customer_email: paymentInfo.senderEmail,
+
+          success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`, // FIXED
+
+          cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`, // FIXED
+        });
+
+        res.send({ url: session.url });
+      } catch (err) {
+        console.error("Stripe error:", err);
+        res.status(500).send({ error: err.message });
+      }
+    });
+
+    app.patch("/payment-success", async (req, res) => {
+      const sessionId = req.query.session_id;
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      if (session.payment_status === "paid") {
+        const id = session.metadata.parcelId;
+        const query = { _id: new ObjectId(id) };
+        const update = {
+          $set: {
+            paymentStatus: "paid",
+          },
+        };
+        const result = await parcelsCollection.updateOne(query, update);
+        res.send(result)
+      }
+      res.send({ success: false });
+
+      console.log("session id", sessionId);
+      res.send({
+        success: true,
+      });
     });
 
     // Send a ping to confirm a successful connection
