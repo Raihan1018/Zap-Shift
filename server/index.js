@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -35,7 +35,8 @@ async function run() {
       if (email) {
         query.senderEmail = email;
       }
-      const cursor = parcelsCollection.find(query);
+      const options = { sort: { createdAt: -1 } };
+      const cursor = parcelsCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -45,14 +46,20 @@ async function run() {
         const parcel = req.body;
 
         // Add current date
-        parcel.date = new Date(); // stores the current timestamp
-
+        parcel.createdAt = new Date(); // stores the current timestamp
         const result = await parcelsCollection.insertOne(parcel);
         res.send(result);
       } catch (error) {
         console.error(error);
         res.status(500).send({ error: "Failed to add parcel" });
       }
+    });
+
+    app.delete("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await parcelsCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
