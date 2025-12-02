@@ -4,7 +4,14 @@ require("dotenv").config();
 const cors = require("cors");
 const port = process.env.PORT || 3000;
 const stripe = require("stripe")(process.env.STRIPT_SECRET);
+const crypto = require("crypto");
 
+function generateTrackingId() {
+  const prefix = "PRCL";
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const random = crypto.randomBytes(3).toString("hex").toUpperCase();
+  return `${prefix}-${date}-${random}`;
+}
 // middleware
 app.use(express.json());
 app.use(cors());
@@ -28,6 +35,7 @@ async function run() {
 
     const db = client.db("zapShift_DB");
     const parcelsCollection = db.collection("parcels");
+    const paymentCollection = db.collection("payments");
 
     // parcel api
     app.get("/parcels", async (req, res) => {
@@ -126,13 +134,14 @@ async function run() {
 
           metadata: {
             parcelId: paymentInfo.parcelId,
+            parcelName: paymentInfo.parcelName,
           },
 
           customer_email: paymentInfo.senderEmail,
 
-          success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`, // FIXED
+          success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
-          cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`, // FIXED
+          cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
         });
 
         res.send({ url: session.url });
@@ -143,25 +152,53 @@ async function run() {
     });
 
     app.patch("/payment-success", async (req, res) => {
-      const sessionId = req.query.session_id;
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-      if (session.payment_status === "paid") {
+      try {
+        const sessionId = req.query.session_id;
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status !== "paid") {
+          return res.send({ success: false });
+        }
+
         const id = session.metadata.parcelId;
+
+        // update parcel payment status
         const query = { _id: new ObjectId(id) };
         const update = {
           $set: {
             paymentStatus: "paid",
+            trackingId: generateTrackingId(),
           },
         };
-        const result = await parcelsCollection.updateOne(query, update);
-        res.send(result)
-      }
-      res.send({ success: false });
 
-      console.log("session id", sessionId);
-      res.send({
-        success: true,
-      });
+        await parcelsCollection.updateOne(query, update);
+
+        // save payment info
+        const payment = {
+          amount: session.amount_total / 100,
+          currency: session.currency,
+          customerEmail: session.customer_email,
+          parcelId: session.metadata.parcelId,
+          parcelName: session.metadata.parcelName,
+          transactionId: session.payment_intent, // FIXED
+          paymentStatus: session.payment_status,
+          paidAt: new Date(),
+        };
+
+        await paymentCollection.insertOne(payment);
+
+        // Fetch newly updated parcel with tracking ID
+        const updatedParcel = await parcelsCollection.findOne(query);
+
+        return res.send({
+          success: true,
+          transactionId: session.payment_intent,
+          trackingId: updatedParcel.trackingId,
+        });
+      } catch (error) {
+        console.log("Payment success error:", error);
+        return res.status(500).send({ error: error.message });
+      }
     });
 
     // Send a ping to confirm a successful connection
