@@ -41,12 +41,19 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await parcelsCollection.findOne(query);
+      res.send(result);
+    });
+
     app.post("/parcels", async (req, res) => {
       try {
         const parcel = req.body;
 
         // Add current date
-        parcel.createdAt = new Date(); // stores the current timestamp
+        parcel.createdAt = new Date();
         const result = await parcelsCollection.insertOne(parcel);
         res.send(result);
       } catch (error) {

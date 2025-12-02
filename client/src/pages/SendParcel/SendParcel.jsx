@@ -54,6 +54,8 @@ const SendParcel = () => {
       }
     }
     console.log(cost);
+
+    data.cost = cost;
     Swal.fire({
       title: "Agree with the cost?",
       text: `Total charge is ${cost} tk`,
@@ -66,13 +68,12 @@ const SendParcel = () => {
       if (result.isConfirmed) {
         axiosSecure.post("/parcels", data).then((res) => {
           console.log("after saving the parcel info in DB", res.data);
+          Swal.fire({
+            title: "Congratulate!",
+            text: "Your parcel request has been received",
+            icon: "success",
+          });
         });
-
-        // Swal.fire({
-        //   title: "No!",
-        //   text: "Your file has been deleted.",
-        //   icon: "success",
-        // });
       }
     });
   };
